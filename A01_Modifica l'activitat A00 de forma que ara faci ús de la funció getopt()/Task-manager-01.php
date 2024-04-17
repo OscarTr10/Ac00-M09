@@ -3,6 +3,7 @@
 if (php_sapi_name() !== 'cli') {
     die("Este script debe ejecutarse desde la línea de comandos (CLI).\n");
 }
+
 // Datos de conexión a la base de datos
 $serverName = "localhost";
 $username = "Oscar";
