@@ -4,6 +4,17 @@ if (php_sapi_name() !== 'cli') {
     die("Este script debe ejecutarse desde la línea de comandos (CLI).\n");
 }
 
+// Ponemos la función getopt
+$options = getopt('a:d:h', ['add:', 'delete:', 'help']);
+//Sus funciones
+function showHelp() {
+    echo "Uso: php script.php [OPCIÓN]\n";
+    echo "Opciones:\n";
+    echo "  -a, --add          Agregar una tarea\n";
+    echo "  -d, --delete       Eliminar una tarea\n";
+    echo "  -h, --help         Mostrar esta ayuda\n";
+}
+
 // Datos de conexión a la base de datos
 $serverName = "localhost";
 $username = "Oscar";
@@ -19,89 +30,35 @@ if (mysqli_connect_errno()) {
 }
 echo "Conexión exitosa\n";
 
-// Función para mostrar el menú
-function menu() {
-    echo "Selecciona una opción:\n";
-    echo "1- Agregar una tarea\n";
-    echo "2- Eliminar una tarea\n";
-    echo "3- Mostrar tareas existentes\n";
-    echo "4- Marcar una tarea como completada\n";
-}
+// Procesar las opciones
+if (isset($options['a']) || isset($options['add'])) {
+    // La opción -a o --add añade una tarea.
+    $nombre = mysqli_real_escape_string($conn, $options['a'] ?? $options['add']);
+    echo "Descripción: ";
+    $descripcion = mysqli_real_escape_string($conn, readline());
 
-// Función para listar las tareas existentes
-function listTasks($conn) {
-    $sql = "SELECT * FROM oscar";
-    $result = mysqli_query($conn, $sql);
-
-    if (mysqli_num_rows($result) > 0) {
-        echo "Tareas existentes:\n";
-        while ($row = mysqli_fetch_assoc($result)) {
-            echo "ID: " . $row['id'] . " Nombre: " . $row['nombre'] . " Descripción: " . $row['descripcion'] . "\n";
-        }
+    // Consulta SQL para insertar una nueva tarea en la base de datos.
+    $sql = "INSERT INTO oscar (nombre, descripcion) VALUES ('$nombre', '$descripcion')";
+    if (mysqli_query($conn, $sql)) {
+        echo "Nueva tarea añadida con éxito.\n";
     } else {
-        echo "No hay tareas existentes.\n";
+        echo "Error al añadir la tarea: " . mysqli_error($conn) . "\n";
     }
-}
-
-menu(); // Mostrar el menú
-
-// Solicitar la opción al usuario
-echo "Ingrese el número de opción: ";
-$opcion = readline();
-
-switch ($opcion) {
-    case '1':
-        // La opción 1 añade una tarea.
-        echo "Nombre de la Tarea: ";
-        $nombre = mysqli_real_escape_string($conn, readline());
-        echo "Descripción: ";
-        $descripcion = mysqli_real_escape_string($conn, readline());
-
-        // Consulta SQL para insertar una nueva tarea en la base de datos.
-        $sql = "INSERT INTO oscar (nombre, descripcion) VALUES ('$nombre', '$descripcion')";
-        if (mysqli_query($conn, $sql)) {
-            echo "Nueva tarea añadida con éxito.\n";
-        } else {
-            echo "Error al añadir la tarea: " . mysqli_error($conn) . "\n";
-        }
-        break;
-
-    case '2':
-        // La opción 2 elimina una tarea.
-        listTasks($conn); // Mostrar las tareas existentes
-        echo "Ingresa la ID de la tarea que deseas eliminar: ";
-        $id = mysqli_real_escape_string($conn, readline());
-        // Consulta SQL para eliminar la tarea con la ID proporcionada
-        $sql = "DELETE FROM oscar WHERE id = '$id'";
-        if (mysqli_query($conn, $sql)) {
-            echo "Tarea eliminada con éxito.\n";
-        } else {
-            echo "Error al eliminar la tarea: " . mysqli_error($conn) . "\n";
-        }
-        break;
-
-    case '3':
-        // La opción 3 muestra las tareas existentes.
-        listTasks($conn);
-        break;
-
-    case '4':
-        // La opción 4 marca como completada una tarea.
-        listTasks($conn); // Mostrar las tareas existentes
-        echo "Ingresa el ID de la tarea que quieres marcar como completada: ";
-        $id = mysqli_real_escape_string($conn, readline());
-        // Consulta SQL para marcar la tarea como completada
-        $sql = "UPDATE oscar SET completada = 1 WHERE id = '$id'";
-        if (mysqli_query($conn, $sql)) {
-            echo "Tarea marcada como completada con éxito.\n";
-        } else {
-            echo "Error al marcar la tarea como completada: " . mysqli_error($conn) . "\n";
-        }
-        break;
-
-    default:
-        echo "Opción no válida. Por favor, selecciona una opción válida.\n";
-        break;
+} elseif (isset($options['d']) || isset($options['delete'])) {
+    // La opción -d o --delete elimina una tarea.
+    $id = mysqli_real_escape_string($conn, $options['d'] ?? $options['delete']);
+    // Consulta SQL para eliminar la tarea con la ID proporcionada
+    $sql = "DELETE FROM oscar WHERE id = '$id'";
+    if (mysqli_query($conn, $sql)) {
+        echo "Tarea eliminada con éxito.\n";
+    } else {
+        echo "Error al eliminar la tarea: " . mysqli_error($conn) . "\n";
+    }
+} elseif (isset($options['h']) || isset($options['help'])) {
+    // Mostrar la ayuda si se especifica la opción -h o --help
+    showHelp();
+} else {
+    echo "Opción no válida. Usa -h o --help para ver la ayuda.\n";
 }
 
 // Cerrar la conexión a la base de datos
