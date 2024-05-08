@@ -6,7 +6,7 @@ if (php_sapi_name() !== 'cli') {
 
 // Ponemos la función getopt
 $options = getopt('a:d:h', ['add:', 'delete:', 'help']);
-//Sus funciones
+//Aqui ponemos las funciones
 function showHelp() {
     echo "Uso: php script.php [OPCIÓN]\n";
     echo "Opciones:\n";
@@ -58,9 +58,20 @@ if (isset($options['a']) || isset($options['add'])) {
     // Mostrar la ayuda si se especifica la opción -h o --help
     showHelp();
 } else {
-    echo "Opción no válida. Usa -h o --help para ver la ayuda.\n";
+    // Si no se proporciona ninguna opción válida, mostrar el menú por defecto.
+    showMenu();
+}
+
+// Función para mostrar el menú por defecto
+function showMenu() {
+    echo "Selecciona una opción:\n";
+    echo "1- Agregar una tarea\n";
+    echo "2- Eliminar una tarea\n";
+    echo "3- Mostrar tareas existentes\n";
+    echo "4- Marcar una tarea como completada\n";
 }
 
 // Cerrar la conexión a la base de datos
 mysqli_close($conn);
 ?>
+
